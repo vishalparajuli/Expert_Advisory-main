@@ -70,9 +70,9 @@ public:
 
 CLogger g_logger("ScalpingEA");
 
-#define LOG_INFO(module, msg, symbol, ...) g_logger.Info(module, msg, symbol)
-#define LOG_WARN(module, msg, symbol, ...) g_logger.Warn(module, msg, symbol)
-#define LOG_ERROR(module, msg, symbol, ...) g_logger.Error(module, msg, symbol)
+#define LOG_INFO(module, msg, symbol) g_logger.Info(module, msg, symbol)
+#define LOG_WARN(module, msg, symbol) g_logger.Warn(module, msg, symbol)
+#define LOG_ERROR(module, msg, symbol) g_logger.Error(module, msg, symbol)
 #define LOG_TRADE(module, msg, symbol, ticket, pnl, equity, latency) g_logger.Trade(module, msg, symbol, ticket, pnl, equity, latency)
 #define LOG_DEBUG(module, msg, symbol) g_logger.Debug(module, msg, symbol)
 
