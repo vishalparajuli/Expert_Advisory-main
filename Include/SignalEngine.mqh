@@ -20,7 +20,7 @@ private:
    int m_rsiPeriod;
    int m_atrPeriod;
    double m_atrMultSL, m_atrMultTP;
-   int m_timeframeSignal, m_timeframeTrend;
+   ENUM_TIMEFRAMES m_timeframeSignal, m_timeframeTrend;
    double m_minATRPips;
    
    int m_handleEMAFast, m_handleEMAMed, m_handleEMASlow;
@@ -140,7 +140,7 @@ public:
 
    void SetParameters(int fastEMA, int medEMA, int slowEMA, int trendEMA1, int trendEMA2,
                       int rsiPeriod, int atrPeriod, double atrMultSL, double atrMultTP,
-                      int tfSignal, int tfTrend, double minATRPips)
+                      ENUM_TIMEFRAMES tfSignal, ENUM_TIMEFRAMES tfTrend, double minATRPips)
    {
       m_fastEMA = fastEMA; m_mediumEMA = medEMA; m_slowEMA = slowEMA;
       m_trendEMA1 = trendEMA1; m_trendEMA2 = trendEMA2;

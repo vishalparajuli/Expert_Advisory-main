@@ -94,7 +94,7 @@ int OnInit()
 
 void OnDeinit(const int reason)
 {
-   LOG_INFO("OnDeinit", "EA stopped: " + EnumToString((ENUM_DEINIT_REASON)reason), _Symbol);
+   LOG_INFO("OnDeinit", "EA stopped: " + IntegerToString(reason), _Symbol);
    g_initialized = false;
 }
 

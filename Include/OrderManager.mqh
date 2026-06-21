@@ -13,9 +13,8 @@ private:
 
    bool CheckSpread()
    {
-      double spread = SymbolInfoInteger(_Symbol, SYMBOL_SPREAD);
-      double spreadPips = spread * SymbolInfoDouble(_Symbol, SYMBOL_POINT) * 10;
-      double maxSpread = SymbolInfoDouble(_Symbol, SYMBOL_POINT) * 10 * 3.0;
+      long spread = SymbolInfoInteger(_Symbol, SYMBOL_SPREAD);
+      double spreadPips = (double)spread * SymbolInfoDouble(_Symbol, SYMBOL_POINT) * 10;
       
       if(spreadPips > 3.0)
       {
@@ -31,13 +30,17 @@ private:
       
       for(int i = 0; i < ArraySize(modes); i++)
       {
-         MqlTradeRequest request = {0};
+         MqlTradeRequest request;
+         ZeroMemory(request);
          request.action = TRADE_ACTION_DEAL;
          request.symbol = _Symbol;
+         request.volume = 0.01;
+         request.price = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
          request.type_filling = modes[i];
          
-         MqlTradeResult result = {0};
-         if(OrderCheck(request, result))
+         MqlTradeCheckResult checkResult;
+         ZeroMemory(checkResult);
+         if(OrderCheck(request, checkResult))
          {
             m_fillingMode = modes[i];
             LOG_INFO("OrderManager", "Filling mode: " + EnumToString(m_fillingMode), _Symbol);
@@ -70,12 +73,14 @@ public:
    {
       if(!CheckSpread()) return false;
       
-      datetime startTime = GetMicrosecondCount();
+      ulong startTime = GetMicrosecondCount();
       
       for(int attempt = 1; attempt <= m_maxRetries; attempt++)
       {
-         MqlTradeRequest request = {0};
-         MqlTradeResult result = {0};
+         MqlTradeRequest request;
+         ZeroMemory(request);
+         MqlTradeResult result;
+         ZeroMemory(result);
          
          request.action = TRADE_ACTION_DEAL;
          request.symbol = _Symbol;
@@ -91,19 +96,19 @@ public:
          request.magic = 123456;
          
          bool sent = OrderSend(request, result);
-         latencyMs = (GetMicrosecondCount() - startTime) / 1000;
+         latencyMs = (long)((GetMicrosecondCount() - startTime) / 1000);
          
          if(sent && result.retcode == TRADE_RETCODE_DONE)
          {
-            ticket = result.order;
+            ticket = (long)result.order;
             LOG_TRADE("OrderManager", "Order sent: " + EnumToString(orderType) + " " + DoubleToString(volume, 2) + " lots", 
                       _Symbol, ticket, 0, AccountInfoDouble(ACCOUNT_EQUITY), latencyMs);
             return true;
          }
          
          LOG_WARN("OrderManager", "Attempt " + IntegerToString(attempt) + " failed: " + 
-                  EnumToString((ENUM_TRADE_RETCODE)result.retcode) + " (" + IntegerToString(result.retcode) + ")", 
-                  _Symbol, result.order);
+                  IntegerToString(result.retcode) + " (" + IntegerToString(result.retcode) + ")", 
+                  _Symbol);
          
          if(attempt < m_maxRetries) Sleep(m_retryDelayMs);
       }
@@ -114,7 +119,7 @@ public:
 
    bool ClosePosition(long ticket, long &latencyMs)
    {
-      datetime startTime = GetMicrosecondCount();
+      ulong startTime = GetMicrosecondCount();
       
       if(!PositionSelectByTicket(ticket)) return false;
       
@@ -122,8 +127,10 @@ public:
       double volume = PositionGetDouble(POSITION_VOLUME);
       double price = (closeType == ORDER_TYPE_BUY) ? SymbolInfoDouble(_Symbol, SYMBOL_ASK) : SymbolInfoDouble(_Symbol, SYMBOL_BID);
       
-      MqlTradeRequest request = {0};
-      MqlTradeResult result = {0};
+      MqlTradeRequest request;
+      ZeroMemory(request);
+      MqlTradeResult result;
+      ZeroMemory(result);
       
       request.action = TRADE_ACTION_DEAL;
       request.symbol = _Symbol;
@@ -137,7 +144,7 @@ public:
       request.magic = 123456;
       
       bool sent = OrderSend(request, result);
-      latencyMs = (GetMicrosecondCount() - startTime) / 1000;
+      latencyMs = (long)((GetMicrosecondCount() - startTime) / 1000);
       
       if(sent && result.retcode == TRADE_RETCODE_DONE)
       {
@@ -146,18 +153,20 @@ public:
          return true;
       }
       
-      LOG_ERROR("OrderManager", "Close failed: " + EnumToString((ENUM_TRADE_RETCODE)result.retcode), _Symbol, ticket);
+      LOG_ERROR("OrderManager", "Close failed: " + IntegerToString(result.retcode), _Symbol, ticket);
       return false;
    }
 
    bool ModifyPosition(long ticket, double sl, double tp, long &latencyMs)
    {
-      datetime startTime = GetMicrosecondCount();
+      ulong startTime = GetMicrosecondCount();
       
       if(!PositionSelectByTicket(ticket)) return false;
       
-      MqlTradeRequest request = {0};
-      MqlTradeResult result = {0};
+      MqlTradeRequest request;
+      ZeroMemory(request);
+      MqlTradeResult result;
+      ZeroMemory(result);
       
       request.action = TRADE_ACTION_SLTP;
       request.symbol = _Symbol;
@@ -166,7 +175,7 @@ public:
       request.tp = tp;
       
       bool sent = OrderSend(request, result);
-      latencyMs = (GetMicrosecondCount() - startTime) / 1000;
+      latencyMs = (long)((GetMicrosecondCount() - startTime) / 1000);
       
       if(sent && result.retcode == TRADE_RETCODE_DONE)
       {
@@ -174,9 +183,9 @@ public:
          return true;
       }
       
-      LOG_WARN("OrderManager", "Modify failed: " + EnumToString((ENUM_TRADE_RETCODE)result.retcode), _Symbol, ticket);
+      LOG_WARN("OrderManager", "Modify failed: " + IntegerToString(result.retcode), _Symbol, ticket);
       return false;
    }
 };
 
-#endif // ORDER_MANAGER_MQH
+#endif

@@ -23,6 +23,20 @@ private:
    
    NewsEvent m_newsEvents[];
 
+   int GetHour(datetime dt)
+   {
+      MqlDateTime dtm;
+      TimeToStruct(dt, dtm);
+      return dtm.hour;
+   }
+
+   int GetDayOfWeek(datetime dt)
+   {
+      MqlDateTime dtm;
+      TimeToStruct(dt, dtm);
+      return dtm.day_of_week;
+   }
+
    bool IsNewsTime(datetime checkTime, string symbol)
    {
       if(!m_avoidNews) return false;
@@ -77,8 +91,8 @@ public:
       if(!m_useSessionFilter) return true;
       
       datetime now = TimeCurrent();
-      int hour = TimeHour(now);
-      int dayOfWeek = TimeDayOfWeek(now);
+      int hour = GetHour(now);
+      int dayOfWeek = GetDayOfWeek(now);
       
       if(dayOfWeek == 0 || dayOfWeek == 6) return false;
       
@@ -87,8 +101,6 @@ public:
       if(hour >= m_londonStartHour && hour < m_londonEndHour) inSession = true;
       if(hour >= m_nyStartHour && hour < m_nyEndHour) inSession = true;
       if(hour >= m_tokyoStartHour && hour < m_tokyoEndHour) inSession = true;
-      
-      bool inOverlap = (hour >= 13 && hour < 17);
       
       if(!inSession)
       {
@@ -111,14 +123,14 @@ public:
    bool IsOverlapSession()
    {
       datetime now = TimeCurrent();
-      int hour = TimeHour(now);
+      int hour = GetHour(now);
       return (hour >= 13 && hour < 17);
    }
 
    string GetCurrentSession()
    {
       datetime now = TimeCurrent();
-      int hour = TimeHour(now);
+      int hour = GetHour(now);
       
       if(hour >= 13 && hour < 17) return "London/NY Overlap";
       if(hour >= 8 && hour < 17) return "London";
@@ -128,4 +140,4 @@ public:
    }
 };
 
-#endif // SESSION_FILTER_MQH
+#endif

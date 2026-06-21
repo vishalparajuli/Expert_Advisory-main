@@ -1,8 +1,6 @@
 #ifndef LOGGER_MQH
 #define LOGGER_MQH
 
-#include <File.mqh>
-
 class CLogger
 {
 private:
@@ -48,7 +46,7 @@ public:
       if(m_fileHandle == INVALID_HANDLE) return;
       
       FileSeek(m_fileHandle, 0, SEEK_END);
-      FileWrite(m_fileHandle, TimeToString(TimeCurrent(), TIME_DATE | TIME_MINUTES | TIME_SECONDS | TIME_MILLISECONDS),
+      FileWrite(m_fileHandle, TimeToString(TimeCurrent(), TIME_DATE | TIME_MINUTES | TIME_SECONDS),
                 level, module, message, symbol, ticket, DoubleToString(pnl, 2), DoubleToString(equity, 2), latencyMs);
       FileClose(m_fileHandle);
    }
@@ -72,10 +70,10 @@ public:
 
 CLogger g_logger("ScalpingEA");
 
-#define LOG_INFO(module, msg, symbol) g_logger.Info(module, msg, symbol)
-#define LOG_WARN(module, msg, symbol) g_logger.Warn(module, msg, symbol)
-#define LOG_ERROR(module, msg, symbol) g_logger.Error(module, msg, symbol)
+#define LOG_INFO(module, msg, symbol, ...) g_logger.Info(module, msg, symbol)
+#define LOG_WARN(module, msg, symbol, ...) g_logger.Warn(module, msg, symbol)
+#define LOG_ERROR(module, msg, symbol, ...) g_logger.Error(module, msg, symbol)
 #define LOG_TRADE(module, msg, symbol, ticket, pnl, equity, latency) g_logger.Trade(module, msg, symbol, ticket, pnl, equity, latency)
 #define LOG_DEBUG(module, msg, symbol) g_logger.Debug(module, msg, symbol)
 
-#endif // LOGGER_MQH
+#endif
