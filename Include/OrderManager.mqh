@@ -153,7 +153,7 @@ public:
          return true;
       }
       
-      LOG_ERROR("OrderManager", "Close failed: " + IntegerToString(result.retcode), _Symbol, ticket);
+      LOG_ERROR("OrderManager", "Close failed: " + IntegerToString(result.retcode) + " ticket=" + IntegerToString(ticket), _Symbol);
       return false;
    }
 
@@ -179,11 +179,11 @@ public:
       
       if(sent && result.retcode == TRADE_RETCODE_DONE)
       {
-         LOG_INFO("OrderManager", "Position modified: SL=" + DoubleToString(sl, _Digits) + " TP=" + DoubleToString(tp, _Digits), _Symbol, ticket);
+          LOG_INFO("OrderManager", "Position modified: SL=" + DoubleToString(sl, _Digits) + " TP=" + DoubleToString(tp, _Digits), _Symbol);
          return true;
       }
       
-      LOG_WARN("OrderManager", "Modify failed: " + IntegerToString(result.retcode), _Symbol, ticket);
+      LOG_WARN("OrderManager", "Modify failed: " + IntegerToString(result.retcode) + " ticket=" + IntegerToString(ticket), _Symbol);
       return false;
    }
 };
