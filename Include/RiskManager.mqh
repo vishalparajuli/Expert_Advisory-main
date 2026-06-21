@@ -68,8 +68,10 @@ public:
 
    void OnTick()
    {
-      datetime currentDay = TimeCurrent();
-      if(TimeDay(currentDay) != TimeDay(m_dailyResetTime))
+      MqlDateTime dtNow, dtReset;
+      TimeToStruct(TimeCurrent(), dtNow);
+      TimeToStruct(m_dailyResetTime, dtReset);
+      if(dtNow.day != dtReset.day || dtNow.mon != dtReset.mon || dtNow.year != dtReset.year)
       {
          ResetDaily();
       }
@@ -111,9 +113,11 @@ public:
       }
       
       int openPositions = 0;
-      for(int i = PositionsTotal() - 1; i >= 0; i--)
+      for(int i = 0; i < PositionsTotal(); i++)
       {
-         if(PositionGetSymbol(i) == _Symbol) openPositions++;
+         ulong posTicket = PositionGetTicket(i);
+         if(posTicket > 0 && PositionSelectByTicket(posTicket) && PositionGetString(POSITION_SYMBOL) == _Symbol)
+            openPositions++;
       }
       
       if(openPositions >= m_maxConcurrentTrades)
@@ -122,9 +126,9 @@ public:
          return false;
       }
       
-      if(equity < SymbolInfoDouble(_Symbol, SYMBOL_MARGIN_REQUIRED) * 2)
+      if(AccountInfoDouble(ACCOUNT_MARGIN_FREE) < 5.0)
       {
-         reason = "Insufficient margin";
+         reason = "Insufficient free margin";
          return false;
       }
       
