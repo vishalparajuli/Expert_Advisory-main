@@ -1,4 +1,5 @@
-#pragma once
+#ifndef RISK_MANAGER_MQH
+#define RISK_MANAGER_MQH
 
 #include "Logger.mqh"
 
@@ -144,3 +145,5 @@ public:
       return (m_peakEquity - equity) / m_peakEquity * 100.0; 
    }
 };
+
+#endif // RISK_MANAGER_MQH

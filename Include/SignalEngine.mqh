@@ -1,6 +1,16 @@
-#pragma once
+#ifndef SIGNAL_ENGINE_MQH
+#define SIGNAL_ENGINE_MQH
 
 #include "Logger.mqh"
+
+struct SignalResult
+{
+   int signal;
+   double sl;
+   double tp;
+   double atrValue;
+   int trend;
+};
 
 class CSignalEngine
 {
@@ -58,38 +68,35 @@ private:
       CopyBuffer(m_handleATR, 0, 0, 3, m_atr);
    }
 
-   ENUM_TREND_DIR GetTrendDirection()
+   int GetTrendDirection()
    {
-      if(m_emaTrend1[0] > m_emaTrend2[0] && m_emaTrend1[1] > m_emaTrend2[1]) return TREND_UP;
-      if(m_emaTrend1[0] < m_emaTrend2[0] && m_emaTrend1[1] < m_emaTrend2[1]) return TREND_DOWN;
-      return TREND_NONE;
+      if(m_emaTrend1[0] > m_emaTrend2[0] && m_emaTrend1[1] > m_emaTrend2[1]) return 1;
+      if(m_emaTrend1[0] < m_emaTrend2[0] && m_emaTrend1[1] < m_emaTrend2[1]) return -1;
+      return 0;
    }
 
-   ENUM_SIGNAL CheckEntrySignal(ENUM_TREND_DIR trend)
+   int CheckEntrySignal(int trend)
    {
-      if(trend == TREND_UP)
+      if(trend == 1)
       {
          if(m_emaFast[1] <= m_emaMed[1] && m_emaFast[0] > m_emaMed[0])
          {
             if(m_rsi[0] < 70 && m_atr[0] > m_minATRPips * _Point * 10)
-               return SIGNAL_BUY;
+               return 1;
          }
       }
-      else if(trend == TREND_DOWN)
+      else if(trend == -1)
       {
          if(m_emaFast[1] >= m_emaMed[1] && m_emaFast[0] < m_emaMed[0])
          {
             if(m_rsi[0] > 30 && m_atr[0] > m_minATRPips * _Point * 10)
-               return SIGNAL_SELL;
+               return -1;
          }
       }
-      return SIGNAL_NONE;
+      return 0;
    }
 
 public:
-   enum ENUM_TREND_DIR { TREND_UP = 1, TREND_DOWN = -1, TREND_NONE = 0 };
-   enum ENUM_SIGNAL { SIGNAL_BUY = 1, SIGNAL_SELL = -1, SIGNAL_NONE = 0 };
-
    CSignalEngine()
    {
       m_fastEMA = 9; m_mediumEMA = 21; m_slowEMA = 50;
@@ -149,18 +156,9 @@ public:
       InitIndicators();
    }
 
-   struct SignalResult
-   {
-      ENUM_SIGNAL signal;
-      double sl;
-      double tp;
-      double atrValue;
-      ENUM_TREND_DIR trend;
-   };
-
    SignalResult GetSignal()
    {
-      SignalResult result = {SIGNAL_NONE, 0, 0, 0, TREND_NONE};
+      SignalResult result = {0, 0, 0, 0, 0};
       
       UpdateBuffers();
       
@@ -170,7 +168,7 @@ public:
       result.atrValue = m_atr[0];
       result.signal = CheckEntrySignal(result.trend);
       
-      if(result.signal != SIGNAL_NONE)
+      if(result.signal != 0)
       {
          double point = _Point;
          double atrPips = result.atrValue / point / 10;
@@ -178,7 +176,7 @@ public:
          double ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
          double bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
          
-         if(result.signal == SIGNAL_BUY)
+         if(result.signal == 1)
          {
             result.sl = ask - m_atrMultSL * result.atrValue;
             result.tp = ask + m_atrMultTP * result.atrValue;
@@ -189,7 +187,7 @@ public:
             result.tp = bid - m_atrMultTP * result.atrValue;
          }
          
-         LOG_INFO("SignalEngine", "Signal: " + EnumToString(result.signal) + " Trend: " + EnumToString(result.trend) + 
+         LOG_INFO("SignalEngine", "Signal: " + IntegerToString(result.signal) + " Trend: " + IntegerToString(result.trend) + 
                   " ATR: " + DoubleToString(atrPips, 1) + "p RSI: " + DoubleToString(m_rsi[0], 1), _Symbol);
       }
       
@@ -200,7 +198,7 @@ public:
    {
       if(!PositionSelectByTicket(ticket)) return false;
       
-      ENUM_POSITION_TYPE type = (ENUM_POSITION_TYPE)PositionGetInteger(POSITION_TYPE);
+      int type = (int)PositionGetInteger(POSITION_TYPE);
       double sl = PositionGetDouble(POSITION_SL);
       double tp = PositionGetDouble(POSITION_TP);
       
@@ -215,3 +213,5 @@ public:
       return false;
    }
 };
+
+#endif // SIGNAL_ENGINE_MQH

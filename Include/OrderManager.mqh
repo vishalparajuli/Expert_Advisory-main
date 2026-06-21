@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ORDER_MANAGER_MQH
+#define ORDER_MANAGER_MQH
 
 #include "Logger.mqh"
 
@@ -177,3 +178,5 @@ public:
       return false;
    }
 };
+
+#endif // ORDER_MANAGER_MQH
