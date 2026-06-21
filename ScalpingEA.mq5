@@ -1,13 +1,16 @@
 #property copyright "Vishal Parajuly"
 #property link "https://github.com/vishalparajuli/Expert_Advisory-main"
 #property version "1.00"
-#property strict
 
 #include "Include\Logger.mqh"
 #include "Include\RiskManager.mqh"
 #include "Include\OrderManager.mqh"
 #include "Include\SessionFilter.mqh"
 #include "Include\SignalEngine.mqh"
+
+#define SIGNAL_NONE 0
+#define SIGNAL_BUY 1
+#define SIGNAL_SELL -1
 
 input group "=== Risk Management ==="
 input double InpRiskPercent = 1.5;
@@ -124,8 +127,10 @@ void ManageOpenPositions()
    for(int i = PositionsTotal() - 1; i >= 0; i--)
    {
       ulong ticket = PositionGetTicket(i);
+      if(ticket <= 0) continue;
+      if(!PositionSelectByTicket(ticket)) continue;
       if(PositionGetInteger(POSITION_MAGIC) != InpMagicNumber) continue;
-      if(PositionGetSymbol(i) != _Symbol) continue;
+      if(PositionGetString(POSITION_SYMBOL) != _Symbol) continue;
       
       double currentPrice = (PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY) ? 
                            SymbolInfoDouble(_Symbol, SYMBOL_BID) : SymbolInfoDouble(_Symbol, SYMBOL_ASK);
@@ -145,12 +150,12 @@ void ManageOpenPositions()
 
 void CheckNewSignal()
 {
-   CSignalEngine::SignalResult signal = g_signalEngine.GetSignal();
+   SignalResult signal = g_signalEngine.GetSignal();
    
-   if(signal.signal == CSignalEngine::SIGNAL_NONE) return;
+   if(signal.signal == SIGNAL_NONE) return;
    
    double volume = g_riskManager.GetLotSize(
-      MathAbs(signal.signal == CSignalEngine::SIGNAL_BUY ? 
+      MathAbs(signal.signal == SIGNAL_BUY ? 
              (SymbolInfoDouble(_Symbol, SYMBOL_ASK) - signal.sl) : 
              (signal.sl - SymbolInfoDouble(_Symbol, SYMBOL_BID))) / _Point / 10
    );
@@ -161,10 +166,10 @@ void CheckNewSignal()
       return;
    }
    
-   double price = (signal.signal == CSignalEngine::SIGNAL_BUY) ? 
+   double price = (signal.signal == SIGNAL_BUY) ? 
                   SymbolInfoDouble(_Symbol, SYMBOL_ASK) : SymbolInfoDouble(_Symbol, SYMBOL_BID);
    
-   ENUM_ORDER_TYPE orderType = (signal.signal == CSignalEngine::SIGNAL_BUY) ? ORDER_TYPE_BUY : ORDER_TYPE_SELL;
+   ENUM_ORDER_TYPE orderType = (signal.signal == SIGNAL_BUY) ? ORDER_TYPE_BUY : ORDER_TYPE_SELL;
    
    long ticket = 0;
    long latency = 0;
@@ -182,7 +187,7 @@ void OnTradeTransaction(const MqlTradeTransaction &trans, const MqlTradeRequest 
    
    if(trans.type == TRADE_TRANSACTION_ORDER_ADD || trans.type == TRADE_TRANSACTION_ORDER_UPDATE)
    {
-      LOG_DEBUG("OnTradeTransaction", "Order: " + EnumToString((ENUM_TRADE_TRANSACTION_TYPE)trans.type), _Symbol, trans.order);
+      LOG_DEBUG("OnTradeTransaction", "Order: " + EnumToString((ENUM_TRADE_TRANSACTION_TYPE)trans.type), _Symbol);
    }
 }
 

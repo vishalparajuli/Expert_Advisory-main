@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SESSION_FILTER_MQH
+#define SESSION_FILTER_MQH
 
 #include "Logger.mqh"
 
@@ -46,10 +47,6 @@ private:
    void LoadNewsCalendar()
    {
       ArrayResize(m_newsEvents, 0);
-      
-      // This would ideally fetch from an API or file
-      // For now, using MQL5 built-in calendar if available
-      // In practice, you'd parse FFcal or similar
    }
 
 public:
@@ -83,20 +80,14 @@ public:
       int hour = TimeHour(now);
       int dayOfWeek = TimeDayOfWeek(now);
       
-      if(dayOfWeek == 0 || dayOfWeek == 6) return false; // Weekend
+      if(dayOfWeek == 0 || dayOfWeek == 6) return false;
       
       bool inSession = false;
       
-      // London session (8-17 UTC)
       if(hour >= m_londonStartHour && hour < m_londonEndHour) inSession = true;
-      
-      // New York session (13-22 UTC)
       if(hour >= m_nyStartHour && hour < m_nyEndHour) inSession = true;
-      
-      // Tokyo session (0-9 UTC) - optional
       if(hour >= m_tokyoStartHour && hour < m_tokyoEndHour) inSession = true;
       
-      // London/NY overlap (13-17 UTC) - best for scalping
       bool inOverlap = (hour >= 13 && hour < 17);
       
       if(!inSession)
@@ -136,3 +127,5 @@ public:
       return "Closed";
    }
 };
+
+#endif // SESSION_FILTER_MQH
